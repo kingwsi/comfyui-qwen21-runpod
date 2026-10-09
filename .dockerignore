@@ -12,3 +12,11 @@
 !scripts/*.py
 !workflows/
 !workflows/*.json
+!scripts/*.sh
+!README.md
+!tests/
+!tests/*.py
+!tests/*.json
+!.github/
+!.github/workflows/
+!.github/workflows/*.yml

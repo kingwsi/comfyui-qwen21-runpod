@@ -28,6 +28,9 @@ RUN python /opt/comfyui-reusable/scripts/patch_proxy.py \
  && python -c 'import torch,gguf,jupyter_server_proxy; assert torch.__version__ == "2.8.0+cu128"'
 COPY start.sh sources.json model-manifest.json lora-manifest.json /opt/comfyui-reusable/
 COPY workflows/ /opt/comfyui-reusable/workflows/
+COPY tests/ /opt/comfyui-reusable/tests/
+COPY Dockerfile README.md pre_start.sh /opt/comfyui-reusable/
+COPY .github/ /opt/comfyui-reusable/.github/
 RUN test ! -e /pre_start.sh
 COPY pre_start.sh /pre_start.sh
 RUN chmod 755 /pre_start.sh /opt/comfyui-reusable/start.sh

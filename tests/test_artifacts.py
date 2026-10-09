@@ -15,6 +15,16 @@ class Artifacts(unittest.TestCase):
  def test_jupyter_cli_uses_venv(self):
   self.assertIn('--no-deps --ignore-installed -r',(ROOT/'Dockerfile').read_text())
   self.assertIn('(root/name).mkdir()',(ROOT/'scripts/cpu_smoke.py').read_text())
+ def test_converter_and_tests_are_packaged(self):
+  docker=(ROOT/'Dockerfile').read_text()
+  self.assertIn('COPY scripts/ /opt/comfyui-reusable/scripts/',docker)
+  self.assertIn('COPY tests/ /opt/comfyui-reusable/tests/',docker)
+  self.assertIn('COPY Dockerfile README.md pre_start.sh /opt/comfyui-reusable/',docker)
+  ignore=(ROOT/'.dockerignore').read_text()
+  for pattern in ('!scripts/*.py','!scripts/*.sh','!tests/*.py','!README.md','!.github/workflows/*.yml'):
+   self.assertIn(pattern,ignore)
+  workflow=(ROOT/'.github/workflows/build-image.yml').read_text()
+  self.assertIn('-m unittest discover -s /opt/comfyui-reusable/tests -v',workflow)
  def test_proxy_patch_present(self):
   self.assertIn('self.request.path[len(raw_prefix):]',(ROOT/'scripts/patch_proxy.py').read_text())
 if __name__=='__main__':unittest.main()

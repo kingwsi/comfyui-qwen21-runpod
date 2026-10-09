@@ -36,6 +36,13 @@ def main():
                     break
                 except (OSError,ValueError,AssertionError): time.sleep(2)
             else: raise RuntimeError('CPU ComfyUI/proxy startup timed out')
+            # Every shipped executable node must exist in the pinned runtime.
+            for path in Path('/opt/comfyui-reusable/workflows').glob('*.json'):
+                workflow=json.loads(path.read_text())
+                for node in workflow['nodes']:
+                    if node['type'] != 'Note':
+                        assert node['type'] in info, (path.name, node['type'])
+            print('PASS: all four 1024 workflow node types registered in pinned CPU runtime.')
             # Anonymous request must not reach ComfyUI object_info JSON.
             try:
                 _,body=get(base+'object_info')

@@ -1,15 +1,15 @@
 {
-  "id": "89cb2dc9-0286-4faa-915e-5d254850ccf9",
+  "id": "573f0527-6e13-4b60-bad4-8034d5fe906f",
   "revision": 0,
-  "last_node_id": 14,
-  "last_link_id": 16,
+  "last_node_id": 20,
+  "last_link_id": 15,
   "nodes": [
     {
       "id": 1,
       "type": "UnetLoaderGGUF",
       "pos": [
         30,
-        100
+        50
       ],
       "size": [
         270,
@@ -33,14 +33,15 @@
       },
       "widgets_values": [
         "qwen-image-2.1-UC-Q8_0.gguf"
-      ]
+      ],
+      "title": "已安装模型 · Qwen Image 2.1 UC Q8"
     },
     {
       "id": 2,
       "type": "CLIPLoader",
       "pos": [
         30,
-        310
+        260
       ],
       "size": [
         270,
@@ -55,7 +56,7 @@
           "name": "CLIP",
           "type": "CLIP",
           "links": [
-            4
+            3
           ]
         }
       ],
@@ -66,14 +67,15 @@
         "qwen3vl_8b_bf16.safetensors",
         "qwen_image",
         "default"
-      ]
+      ],
+      "title": "已安装文本编码器 · BF16"
     },
     {
       "id": 3,
       "type": "VAELoader",
       "pos": [
         30,
-        510
+        480
       ],
       "size": [
         270,
@@ -88,8 +90,8 @@
           "name": "VAE",
           "type": "VAE",
           "links": [
-            5,
-            14
+            4,
+            11
           ]
         }
       ],
@@ -98,38 +100,38 @@
       },
       "widgets_values": [
         "qwen_image_2.1_vae_bf16.safetensors"
-      ]
+      ],
+      "title": "已安装 VAE · Qwen 2.1"
     },
     {
       "id": 4,
       "type": "TextEncodeQwenImage21",
       "size": [
-        480,
-        330
+        520,
+        450
       ],
       "flags": {},
-      "order": 9,
+      "order": 8,
       "mode": 0,
       "inputs": [
         {
-          "localized_name": "clip",
           "name": "clip",
           "type": "CLIP",
-          "link": 4
+          "link": 3
         },
         {
           "localized_name": "image_1",
           "name": "images.image_1",
           "shape": 7,
           "type": "IMAGE",
-          "link": 8
+          "link": 6
         },
         {
           "localized_name": "image_2",
           "name": "images.image_2",
           "shape": 7,
           "type": "IMAGE",
-          "link": 9
+          "link": 15
         },
         {
           "localized_name": "image_3",
@@ -139,11 +141,10 @@
           "link": null
         },
         {
-          "localized_name": "vae",
           "name": "vae",
           "shape": 7,
           "type": "VAE",
-          "link": 5
+          "link": 4
         }
       ],
       "outputs": [
@@ -152,7 +153,7 @@
           "name": "positive",
           "type": "CONDITIONING",
           "links": [
-            10
+            7
           ]
         },
         {
@@ -160,7 +161,7 @@
           "name": "negative",
           "type": "CONDITIONING",
           "links": [
-            11
+            8
           ]
         },
         {
@@ -168,7 +169,7 @@
           "name": "latent",
           "type": "LATENT",
           "links": [
-            12
+            9
           ]
         }
       ],
@@ -178,37 +179,37 @@
         "ver": "0.38.0"
       },
       "widgets_values": [
-        "Dress the person in image 1 in the outfit shown in image 2. Replace everything they wear that is visible in image 1. Preserve the person's identity, face, hair, body proportions, pose, framing, background, and lighting from image 1. Keep the garment colors, patterns, materials, and details from image 2. Do not zoom out or reveal body parts outside the original frame.",
+        "编辑第 1 张主图。参考第 2 张图的背景与环境，将这些元素自然应用到主图中。保持主图主体的身份、面部、姿势、轮廓、衣着、材质和细节不变。只修改背景，输出一张自然协调的完整图片，不要拼图，不要复制参考图中的主体。",
         "",
         0
       ],
-      "title": "编辑指令 · 人物与服装参考图",
+      "title": "② 编辑指令 · 第 1 张主图，其余为参考",
       "color": "#14424d",
       "bgcolor": "#161f21",
       "pos": [
-        820,
-        350
+        1000,
+        180
       ]
     },
     {
       "id": 5,
       "type": "QwenImage21Cache",
       "pos": [
-        820,
-        100
+        1000,
+        40
       ],
       "size": [
         270,
         82
       ],
       "flags": {},
-      "order": 8,
+      "order": 7,
       "mode": 0,
       "inputs": [
         {
           "name": "model",
           "type": "MODEL",
-          "link": 2
+          "link": 1
         }
       ],
       "outputs": [
@@ -216,7 +217,7 @@
           "name": "MODEL",
           "type": "MODEL",
           "links": [
-            3
+            2
           ]
         }
       ],
@@ -226,42 +227,43 @@
       "widgets_values": [
         "auto",
         "default"
-      ]
+      ],
+      "title": "参考图缓存 · 默认保持"
     },
     {
       "id": 6,
       "type": "KSampler",
       "pos": [
-        1360,
-        350
+        1570,
+        180
       ],
       "size": [
         270,
         262
       ],
       "flags": {},
-      "order": 10,
+      "order": 9,
       "mode": 0,
       "inputs": [
         {
           "name": "model",
           "type": "MODEL",
-          "link": 3
+          "link": 2
         },
         {
           "name": "positive",
           "type": "CONDITIONING",
-          "link": 10
+          "link": 7
         },
         {
           "name": "negative",
           "type": "CONDITIONING",
-          "link": 11
+          "link": 8
         },
         {
           "name": "latent_image",
           "type": "LATENT",
-          "link": 12
+          "link": 9
         }
       ],
       "outputs": [
@@ -269,7 +271,7 @@
           "name": "LATENT",
           "type": "LATENT",
           "links": [
-            13
+            10
           ]
         }
       ],
@@ -291,26 +293,26 @@
       "id": 7,
       "type": "VAEDecode",
       "pos": [
-        1710,
-        350
+        1890,
+        180
       ],
       "size": [
         140,
         46
       ],
       "flags": {},
-      "order": 11,
+      "order": 10,
       "mode": 0,
       "inputs": [
         {
           "name": "samples",
           "type": "LATENT",
-          "link": 13
+          "link": 10
         },
         {
           "name": "vae",
           "type": "VAE",
-          "link": 14
+          "link": 11
         }
       ],
       "outputs": [
@@ -318,91 +320,53 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            15
+            12
           ]
         }
       ],
       "properties": {
         "Node name for S&R": "VAEDecode"
-      }
+      },
+      "title": "解码生成结果"
     },
     {
       "id": 8,
       "type": "SaveImage",
       "pos": [
-        2070,
-        350
+        2200,
+        180
       ],
       "size": [
-        270,
-        58
+        350,
+        430
       ],
       "flags": {},
-      "order": 13,
+      "order": 12,
       "mode": 0,
       "inputs": [
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 16
+          "link": 13
         }
       ],
       "outputs": [],
       "properties": {},
       "widgets_values": [
-        "qwen21_outfit_swap/2k"
+        "qwen21_multi_reference/2images_1024"
       ],
-      "title": "④ 保存 2K 换装结果"
-    },
-    {
-      "id": 9,
-      "type": "LoraLoaderModelOnly",
-      "pos": [
-        440,
-        100
-      ],
-      "size": [
-        310,
-        130
-      ],
-      "flags": {},
-      "order": 5,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 1
-        }
-      ],
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "links": [
-            2
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "LoraLoaderModelOnly"
-      },
-      "widgets_values": [
-        "qwen-image-2.1-outfit-swap.safetensors",
-        1.0
-      ],
-      "title": "Outfit Swap LoRA · strength 1"
+      "title": "④ 输出一张 1024×1024 编辑图"
     },
     {
       "id": 10,
       "type": "LoadImage",
       "pos": [
-        30,
-        730
+        360,
+        50
       ],
       "size": [
-        310,
-        130
+        290,
+        290
       ],
       "flags": {},
       "order": 3,
@@ -413,7 +377,7 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            6
+            5
           ]
         },
         {
@@ -426,68 +390,30 @@
         "Node name for S&R": "LoadImage"
       },
       "widgets_values": [
-        "person.png",
+        "main.png",
         "image"
       ],
-      "title": "① 上传人物原图"
-    },
-    {
-      "id": 11,
-      "type": "LoadImage",
-      "pos": [
-        430,
-        730
-      ],
-      "size": [
-        310,
-        130
-      ],
-      "flags": {},
-      "order": 4,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "links": [
-            7
-          ]
-        },
-        {
-          "name": "MASK",
-          "type": "MASK",
-          "links": []
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "LoadImage"
-      },
-      "widgets_values": [
-        "clothing.png",
-        "image"
-      ],
-      "title": "② 上传服装参考图"
+      "title": "① 主图 · image_1 · 被编辑对象"
     },
     {
       "id": 12,
-      "type": "ImageScaleToMaxDimension",
+      "type": "ImageScale",
       "pos": [
-        30,
-        1100
+        670,
+        60
       ],
       "size": [
-        310,
-        130
+        290,
+        180
       ],
       "flags": {},
-      "order": 6,
+      "order": 5,
       "mode": 0,
       "inputs": [
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 6
+          "link": 5
         }
       ],
       "outputs": [
@@ -495,58 +421,20 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            8
+            6
           ]
         }
       ],
       "properties": {
-        "Node name for S&R": "ImageScaleToMaxDimension"
+        "Node name for S&R": "ImageScale"
       },
       "widgets_values": [
         "lanczos",
-        2048
+        1024,
+        1024,
+        "center"
       ],
-      "title": "2K 输出尺寸 · 最长边 2048（可修改）"
-    },
-    {
-      "id": 13,
-      "type": "ImageScaleToTotalPixels",
-      "pos": [
-        430,
-        1100
-      ],
-      "size": [
-        310,
-        130
-      ],
-      "flags": {},
-      "order": 7,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "image",
-          "type": "IMAGE",
-          "link": 7
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "links": [
-            9
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "ImageScaleToTotalPixels"
-      },
-      "widgets_values": [
-        "lanczos",
-        1.0,
-        32
-      ],
-      "title": "服装参考 · 约 1 百万像素"
+      "title": "主图 · 居中裁正方形 · 1024×1024"
     },
     {
       "id": 14,
@@ -556,14 +444,14 @@
         70
       ],
       "flags": {},
-      "order": 12,
+      "order": 11,
       "mode": 0,
       "inputs": [
         {
           "localized_name": "image",
           "name": "image",
           "type": "IMAGE",
-          "link": 15
+          "link": 12
         }
       ],
       "outputs": [
@@ -572,7 +460,7 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            16
+            13
           ]
         },
         {
@@ -587,13 +475,114 @@
         "cnr_id": "comfy-core",
         "ver": "0.38.0"
       },
-      "title": "Drop the alpha channel",
+      "title": "输出 RGB 图片 · 分离透明通道",
       "color": "#14424d",
       "bgcolor": "#161f21",
       "pos": [
-        1710,
-        100
+        1890,
+        310
       ]
+    },
+    {
+      "id": 15,
+      "type": "LoadImage",
+      "pos": [
+        360,
+        440
+      ],
+      "size": [
+        290,
+        290
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            14
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "reference_1.png",
+        "image"
+      ],
+      "title": "① 参考图 1 · image_2"
+    },
+    {
+      "id": 16,
+      "type": "ImageScaleToMaxDimension",
+      "pos": [
+        670,
+        450
+      ],
+      "size": [
+        290,
+        120
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 14
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            15
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageScaleToMaxDimension"
+      },
+      "widgets_values": [
+        "lanczos",
+        1024
+      ],
+      "title": "参考图 1 · 保持比例 · 最长边 1024"
+    },
+    {
+      "id": 20,
+      "type": "Note",
+      "pos": [
+        1000,
+        700
+      ],
+      "size": [
+        520,
+        250
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "使用说明：本文件共 2 张输入 = 1 张主图 + 1 张参考图。\n先在每个上传节点选图，再改编辑指令，最后运行。image_1 决定主图及输出尺寸；后续图只作为参考。\n主图会居中裁成正方形，输出固定 1024×1024；边缘内容可能被裁掉。请提前做好构图。参考图保持比例。\n只用两张图请打开 2Images 文件；不用上传空白占位图。更多参考可复制参考图上传+缩放节点，接编码器末尾空的 image 输入（共最多 16 张，显存/耗时随图数增加）。\n不需要的参考必须断开或删除相应节点；保留空上传节点且仍连接会报错。\n默认 25 步 / CFG 1 / Euler / simple / denoise 1。resolution=0，不要改动。无换装 LoRA。"
+      ],
+      "title": "先读这里 · 多图参考编辑",
+      "color": "#432",
+      "bgcolor": "#653"
     }
   ],
   "links": [
@@ -601,20 +590,12 @@
       1,
       1,
       0,
-      9,
-      0,
-      "MODEL"
-    ],
-    [
-      2,
-      9,
-      0,
       5,
       0,
       "MODEL"
     ],
     [
-      3,
+      2,
       5,
       0,
       6,
@@ -622,7 +603,7 @@
       "MODEL"
     ],
     [
-      4,
+      3,
       2,
       0,
       4,
@@ -630,7 +611,7 @@
       "CLIP"
     ],
     [
-      5,
+      4,
       3,
       0,
       4,
@@ -638,7 +619,7 @@
       "VAE"
     ],
     [
-      6,
+      5,
       10,
       0,
       12,
@@ -646,47 +627,31 @@
       "IMAGE"
     ],
     [
-      7,
-      11,
-      0,
-      13,
-      0,
-      "IMAGE"
-    ],
-    [
-      8,
+      6,
       12,
       0,
       4,
       1,
       "IMAGE"
+    ],
+    [
+      7,
+      4,
+      0,
+      6,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      8,
+      4,
+      1,
+      6,
+      2,
+      "CONDITIONING"
     ],
     [
       9,
-      13,
-      0,
-      4,
-      2,
-      "IMAGE"
-    ],
-    [
-      10,
-      4,
-      0,
-      6,
-      1,
-      "CONDITIONING"
-    ],
-    [
-      11,
-      4,
-      1,
-      6,
-      2,
-      "CONDITIONING"
-    ],
-    [
-      12,
       4,
       2,
       6,
@@ -694,7 +659,7 @@
       "LATENT"
     ],
     [
-      13,
+      10,
       6,
       0,
       7,
@@ -702,7 +667,7 @@
       "LATENT"
     ],
     [
-      14,
+      11,
       3,
       0,
       7,
@@ -710,7 +675,7 @@
       "VAE"
     ],
     [
-      15,
+      12,
       7,
       0,
       14,
@@ -718,11 +683,27 @@
       "IMAGE"
     ],
     [
-      16,
+      13,
       14,
       0,
       8,
       0,
+      "IMAGE"
+    ],
+    [
+      14,
+      15,
+      0,
+      16,
+      0,
+      "IMAGE"
+    ],
+    [
+      15,
+      16,
+      0,
+      4,
+      2,
       "IMAGE"
     ]
   ],
@@ -730,10 +711,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 1,
+      "scale": 0.6,
       "offset": [
-        0,
-        0
+        30,
+        50
       ]
     },
     "frontendVersion": "1.53.6"

@@ -35,6 +35,7 @@ jobs:
         env:
           IMAGE: ghcr.io/${{ github.repository }}
         run: |
+          docker run --rm --network none --entrypoint python "$IMAGE:sha-${GITHUB_SHA}" -m unittest discover -s /opt/comfyui-reusable/tests -v
           docker run --rm --network none --entrypoint python "$IMAGE:sha-${GITHUB_SHA}" /opt/comfyui-reusable/scripts/cpu_smoke.py
       - name: Publish using ephemeral workflow token
         env:
