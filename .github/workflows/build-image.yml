@@ -1,0 +1,50 @@
+name: Build and publish CPU-tested image
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ghcr-image-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  build:
+    # Standard public-repository runner only. Never select larger/paid runners.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # official v4
+        with:
+          persist-credentials: false
+      - name: Source tests (no models)
+        run: |
+          python3 -m unittest discover -s tests -v
+          bash -n start.sh pre_start.sh scripts/preflight_disk.sh
+      - name: Free-runner disk admission check
+        run: bash scripts/preflight_disk.sh
+      - name: Build once in local Docker store
+        env:
+          IMAGE: ghcr.io/${{ github.repository }}
+        run: |
+          docker build --platform linux/amd64 --tag "$IMAGE:sha-${GITHUB_SHA}" .
+      - name: CPU smoke before publication (network disabled; no weights)
+        env:
+          IMAGE: ghcr.io/${{ github.repository }}
+        run: |
+          docker run --rm --network none --entrypoint python "$IMAGE:sha-${GITHUB_SHA}" /opt/comfyui-reusable/scripts/cpu_smoke.py
+      - name: Publish using ephemeral workflow token
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USER: ${{ github.actor }}
+          IMAGE: ghcr.io/${{ github.repository }}
+        run: |
+          trap 'docker logout ghcr.io >/dev/null 2>&1 || true' EXIT
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io --username "$GHCR_USER" --password-stdin
+          docker tag "$IMAGE:sha-${GITHUB_SHA}" "$IMAGE:latest"
+          docker push "$IMAGE:sha-${GITHUB_SHA}"
+          docker push "$IMAGE:latest"
+          echo "Published $IMAGE:sha-${GITHUB_SHA}; GPU cold start/inference has not been tested." >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,14 @@
+{
+  "comfyui": {
+    "repository": "https://github.com/Comfy-Org/ComfyUI.git",
+    "commit": "6b747c0428c343e1417219641db93a4fb7cb69ae",
+    "version": "v0.38.0"
+  },
+  "gguf": {
+    "repository": "https://github.com/leejet/ComfyUI-GGUF.git",
+    "commit": "373048b8403a7820620065210a691263d4da0a61"
+  },
+  "base_image": "runpod/pytorch:1.0.2-cu1281-torch280-ubuntu2404",
+  "base_image_digest": "sha256:4d1721e62b56d345c83b4fd6090664be6daf9312caab5b2e76f23d8231941851",
+  "target_platform": "linux/amd64"
+}

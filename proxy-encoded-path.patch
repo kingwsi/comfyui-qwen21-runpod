@@ -1,0 +1,19 @@
+--- jupyter_server_proxy/handlers.py.orig
++++ jupyter_server_proxy/handlers.py
+@@ -335,6 +335,16 @@
+         #
+         # ref: https://tools.ietf.org/html/rfc3986#section-2.2
+         client_path = quote(client_path, safe=":/?#[]@!$&'()*+,;=-._~")
++
++        # Preserve percent-encoded path separators for the standard local port
++        # proxy. Tornado already decoded proxied_path; quoting it cannot recover
++        # an encoded slash needed by ComfyUI's single-segment userdata route.
++        # Use only the raw PATH after this exact authenticated proxy prefix.
++        # Host, port, query forwarding and authentication are unchanged.
++        raw_prefix = url_path_join(self.settings.get("base_url", "/"), "proxy", str(port)) + "/"
++        if (not self.absolute_url and host == "localhost"
++                and self.request.path.startswith(raw_prefix)):
++            client_path = "/" + self.request.path[len(raw_prefix):]
+ 
+         client_uri = "{protocol}://{host}:{port}{path}".format(
+             protocol=protocol,

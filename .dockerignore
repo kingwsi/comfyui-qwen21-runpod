@@ -1,0 +1,14 @@
+**
+!Dockerfile
+!.dockerignore
+!payload-requirements.txt
+!proxy-encoded-path.patch
+!start.sh
+!pre_start.sh
+!sources.json
+!model-manifest.json
+!lora-manifest.json
+!scripts/
+!scripts/*.py
+!workflows/
+!workflows/*.json
