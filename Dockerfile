@@ -31,6 +31,7 @@ COPY workflows/ /opt/comfyui-reusable/workflows/
 COPY tests/ /opt/comfyui-reusable/tests/
 COPY Dockerfile README.md pre_start.sh /opt/comfyui-reusable/
 COPY .github/ /opt/comfyui-reusable/.github/
+COPY .dockerignore /opt/comfyui-reusable/.dockerignore
 RUN test ! -e /pre_start.sh
 COPY pre_start.sh /pre_start.sh
 RUN chmod 755 /pre_start.sh /opt/comfyui-reusable/start.sh
