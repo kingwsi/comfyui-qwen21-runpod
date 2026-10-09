@@ -7,7 +7,7 @@ RUN python -c 'import sys,torch; assert sys.version_info[:2] == (3,12); assert t
  && python -m venv --system-site-packages /opt/comfyui-venv
 ENV PATH=/opt/comfyui-venv/bin:$PATH
 COPY payload-requirements.txt /opt/comfyui-reusable/payload-requirements.txt
-RUN python -m pip install --no-cache-dir --no-deps -r /opt/comfyui-reusable/payload-requirements.txt \
+RUN python -m pip install --no-cache-dir --no-deps --ignore-installed -r /opt/comfyui-reusable/payload-requirements.txt \
  && python -m pip check
 # Source-only git context. Both upstream checkouts are immutable commits.
 RUN git init /opt/ComfyUI \

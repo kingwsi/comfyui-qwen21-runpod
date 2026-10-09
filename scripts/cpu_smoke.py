@@ -14,6 +14,8 @@ def main():
     procs=[]
     with tempfile.TemporaryDirectory() as root:
         root = Path(root)
+        for name in ("user", "input", "output", "temp"):
+            (root/name).mkdir()
         try:
             logs=[]
             cmds=[

@@ -12,6 +12,9 @@ class Artifacts(unittest.TestCase):
   self.assertFalse((ROOT/'site-packages/torch').exists());self.assertFalse((ROOT/'site-packages/torchvision').exists())
  def test_auth_and_bind(self):
   self.assertIn('JUPYTER_PASSWORD must be configured',(ROOT/'pre_start.sh').read_text());self.assertIn('--listen 127.0.0.1',(ROOT/'start.sh').read_text());self.assertNotIn('disable_check_xsrf',(ROOT/'Dockerfile').read_text())
+ def test_jupyter_cli_uses_venv(self):
+  self.assertIn('--no-deps --ignore-installed -r',(ROOT/'Dockerfile').read_text())
+  self.assertIn('(root/name).mkdir()',(ROOT/'scripts/cpu_smoke.py').read_text())
  def test_proxy_patch_present(self):
   self.assertIn('self.request.path[len(raw_prefix):]',(ROOT/'scripts/patch_proxy.py').read_text())
 if __name__=='__main__':unittest.main()
