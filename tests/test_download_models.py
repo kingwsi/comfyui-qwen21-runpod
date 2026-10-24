@@ -1,4 +1,5 @@
 import hashlib
+import http.client
 import importlib.util
 import io
 import json
@@ -36,6 +37,23 @@ class Downloads(unittest.TestCase):
         data = m.load_manifest(ROOT / 'model-manifest.json')
         self.assertEqual(data['total_size_bytes'], 25801402224)
 
+    def test_turbo_manifest_pins_all_components_and_sources(self):
+        data=m.load_manifest(ROOT / 'turbo-model-manifest.json')
+        self.assertEqual(len(data['files']),4)
+        self.assertEqual(data['total_size_bytes'],18139153496)
+        for item in data['files']:
+            url=m.public_url(data,item)
+            self.assertIn('/'+item['repo_id']+'/resolve/'+item['revision']+'/',url)
+        self.assertTrue(data['files'][2]['target_path'].startswith('text_encoders/mmproj-'))
+        self.assertEqual(data['files'][3]['sha256'],m.load_manifest(ROOT/'model-manifest.json')['files'][2]['sha256'])
+
+    def test_per_file_source_override_is_validated(self):
+        for field,value in [('revision','main'),('repo_id','https://example.com/x')]:
+            data=json.loads((ROOT/'turbo-model-manifest.json').read_text())
+            data['files'][0][field]=value
+            path=self.root/'invalid.json';path.write_text(json.dumps(data))
+            with self.assertRaises(ValueError):m.load_manifest(path)
+
     def test_download_and_hash(self):
         with patch.object(m.urllib.request, 'urlopen', return_value=Response(self.data)):
             m.ensure_file(self.root, self.manifest, self.item)
@@ -67,6 +85,19 @@ class Downloads(unittest.TestCase):
             with self.assertRaises(OSError):
                 m.stream_download('https://huggingface.co/test', self.root / 'small.part', len(self.data))
         self.assertEqual((self.root / 'small.part').stat().st_size, 4)
+
+    def test_incomplete_http_response_resumes_from_saved_bytes(self):
+        class InterruptedResponse(Response):
+            def read(self,size=-1):
+                if self.tell() >= 4:
+                    raise http.client.IncompleteRead(b'uncommitted',12)
+                return super().read(4)
+        resumed=Response(self.data[4:],206,{'Content-Range':f'bytes 4-{len(self.data)-1}/{len(self.data)}'})
+        with patch.object(m.urllib.request,'urlopen',side_effect=[InterruptedResponse(self.data),resumed]) as call, patch.object(m.time,'sleep'):
+            m.ensure_file(self.root,self.manifest,self.item)
+        self.assertEqual(call.call_args_list[1].args[0].get_header('Range'),'bytes=4-')
+        self.assertEqual((self.root/self.item['target_path']).read_bytes(),self.data)
+        self.assertFalse((self.root/(self.item['target_path']+'.part')).exists())
 
     def test_oversized_response_is_rejected(self):
         with patch.object(m.urllib.request, 'urlopen', return_value=Response(self.data+b'x')):

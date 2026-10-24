@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Download only the three pinned public files, resume .part files, verify SHA-256."""
+"""Download pinned public model files, resume .part files, verify SHA-256."""
 import argparse
 import hashlib
+import http.client
 import json
 import os
 import re
@@ -21,12 +22,10 @@ def load_manifest(path):
     data = json.loads(Path(path).read_text(encoding='utf-8'))
     if data.get('schema_version') != 1 or not data.get('files'):
         raise ValueError('Expected schema version 1 and one or more model files.')
-    if not re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', data['repo_id']):
-        raise ValueError('Invalid public Hugging Face repo identifier.')
-    if not re.fullmatch(r'[a-f0-9]{40}', data['revision']):
-        raise ValueError('Models must be pinned to an immutable 40-character revision.')
+    validate_source(data)
     targets = set()
     for item in data['files']:
+        validate_source({**data, **item})
         for key in ('remote_path', 'target_path'):
             part = PurePosixPath(item[key])
             if part.is_absolute() or '..' in part.parts or '\\' in item[key] or not part.parts:
@@ -41,6 +40,13 @@ def load_manifest(path):
     if sum(x['size_bytes'] for x in data['files']) != data['total_size_bytes']:
         raise ValueError('Manifest total does not match the files.')
     return data
+
+
+def validate_source(source):
+    if not re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', source['repo_id']):
+        raise ValueError('Invalid public Hugging Face repo identifier.')
+    if not re.fullmatch(r'[a-f0-9]{40}', source['revision']):
+        raise ValueError('Models must be pinned to an immutable 40-character revision.')
 
 
 def safe_target(root, relative):
@@ -71,7 +77,9 @@ def verify(path, item):
 
 def public_url(manifest, item):
     path = urllib.parse.quote(item['remote_path'], safe='/')
-    return f"https://huggingface.co/{manifest['repo_id']}/resolve/{manifest['revision']}/{path}"
+    source = {**manifest, **item}
+    validate_source(source)
+    return f"https://huggingface.co/{source['repo_id']}/resolve/{source['revision']}/{path}"
 
 
 def stream_download(url, partial, expected_size):
@@ -135,7 +143,7 @@ def ensure_file(root, manifest, item, verify_only=False):
             if exc.code not in (408, 429, 500, 502, 503, 504) or attempt == 5:
                 raise RuntimeError(f'Public model download failed with HTTP {exc.code}.') from None
             print(f'  HTTP {exc.code}; retry {attempt}/5 …', flush=True)
-        except (OSError, urllib.error.URLError) as exc:
+        except (OSError, urllib.error.URLError, http.client.IncompleteRead) as exc:
             if attempt == 5:
                 raise RuntimeError(f'Download failed after five attempts ({type(exc).__name__}); rerun to resume.') from None
             print(f'  Interrupted ({type(exc).__name__}); retry {attempt}/5 …', flush=True)

@@ -2,6 +2,23 @@
 import json, os, secrets, subprocess, tempfile, time, urllib.request, urllib.error
 from pathlib import Path
 import websocket
+import fastjsonschema
+
+def check_turbo_runtime(info):
+    # Check real object_info, not only whether a node class was registered.
+    contracts={
+        'CLIPLoaderGGUF': ({'clip_name','type'}, ['CLIP']),
+        'SamplerCustom': ({'model','add_noise','noise_seed','cfg','positive','negative','sampler','sigmas','latent_image'}, ['LATENT','LATENT']),
+        'ManualSigmas': ({'sigmas'}, ['SIGMAS']),
+        'KSamplerSelect': ({'sampler_name'}, ['SAMPLER']),
+    }
+    for name,(required,outputs) in contracts.items():
+        assert name in info, ('Missing Turbo node',name)
+        actual=info[name]
+        assert required.issubset(actual['input']['required']), ('Turbo input mismatch',name)
+        assert list(actual['output'])==outputs, ('Turbo output mismatch',name)
+    assert 'qwen_image' in info['CLIPLoaderGGUF']['input']['required']['type'][0]
+    assert 'euler' in info['KSamplerSelect']['input']['required']['sampler_name'][0]
 
 def get(url, token=None, data=None, method=None):
     headers = {'Authorization': 'token ' + token} if token else {}
@@ -36,13 +53,19 @@ def main():
                     break
                 except (OSError,ValueError,AssertionError): time.sleep(2)
             else: raise RuntimeError('CPU ComfyUI/proxy startup timed out')
-            # Every shipped executable node must exist in the pinned runtime.
+            check_turbo_runtime(info)
+            validate=fastjsonschema.compile(json.loads(Path('/opt/comfyui-reusable/tests/comfy-workflow-0.4.schema.json').read_text()))
+            # Every shipped graph must be valid and its nodes registered.
+            count=0
             for path in Path('/opt/comfyui-reusable/workflows').glob('*.json'):
                 workflow=json.loads(path.read_text())
+                validate(workflow)
+                count+=1
                 for node in workflow['nodes']:
                     if node['type'] != 'Note':
                         assert node['type'] in info, (path.name, node['type'])
-            print('PASS: all four 1024 workflow node types registered in pinned CPU runtime.')
+            assert count==7, ('Unexpected workflow count',count)
+            print(f'PASS: all {count} workflow schemas and node registrations; Turbo runtime input/output contracts.')
             # Anonymous request must not reach ComfyUI object_info JSON.
             try:
                 _,body=get(base+'object_info')

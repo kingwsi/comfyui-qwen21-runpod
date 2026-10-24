@@ -27,4 +27,7 @@ class Artifacts(unittest.TestCase):
   self.assertIn('-m unittest discover -s /opt/comfyui-reusable/tests -v',workflow)
  def test_proxy_patch_present(self):
   self.assertIn('self.request.path[len(raw_prefix):]',(ROOT/'scripts/patch_proxy.py').read_text())
+ def test_turbo_manifest_is_packaged(self):
+  self.assertIn('turbo-model-manifest.json',(ROOT/'Dockerfile').read_text())
+  self.assertIn('!turbo-model-manifest.json',(ROOT/'.dockerignore').read_text())
 if __name__=='__main__':unittest.main()

@@ -4,7 +4,7 @@ ROOT=Path(__file__).resolve().parents[1]
 class Workflows(unittest.TestCase):
     def test_workflows_are_source_only_and_linked(self):
         files=list((ROOT/'workflows').glob('*.json'))
-        self.assertEqual(len(files),4)
+        self.assertEqual(len(files),7)
         for p in files:
             data=json.loads(p.read_text())
             nodes={n['id']:n for n in data['nodes']}
@@ -41,6 +41,24 @@ class Workflows(unittest.TestCase):
             else:self.assertEqual(loras,[])
             expected=3 if '3Images' in p.name else 2 if ('2Images' in p.name or 'Outfit' in p.name) else 1
             self.assertEqual(types.count('LoadImage'),expected)
+
+    def test_turbo_uses_exact_schedule_and_reference_latent(self):
+        expected=[1.0,0.978453,0.95418,0.926626,0.89508,0.845148,0.704534,0.414568,0.0]
+        for p in (ROOT/'workflows').glob('Qwen21-Turbo-*.json'):
+            d=json.loads(p.read_text()); nodes={n['id']:n for n in d['nodes']}
+            self.assertEqual(nodes[1]['widgets_values'],['Qwen-Image-2.1-Turbo-Q8_0.gguf'])
+            self.assertEqual(nodes[2]['type'],'CLIPLoaderGGUF')
+            self.assertEqual(nodes[2]['widgets_values'],['Qwen-Image-2.1-Turbo-Uncensored-Q8_0.gguf','qwen_image'])
+            self.assertEqual(nodes[6]['type'],'SamplerCustom')
+            self.assertEqual(nodes[6]['widgets_values'][0],True)
+            self.assertEqual(nodes[6]['widgets_values'][-1],1.0)
+            self.assertEqual([i['name'] for i in nodes[6]['inputs']],['model','positive','negative','sampler','sigmas','latent_image'])
+            self.assertIn([9,4,2,6,5,'LATENT'],d['links'])
+            self.assertFalse(any(n['type'] in ('KSampler','LoraLoaderModelOnly') for n in nodes.values()))
+            sigma=next(n for n in nodes.values() if n['type']=='ManualSigmas')
+            self.assertEqual([float(x) for x in sigma['widgets_values'][0].split(',')],expected)
+            sampler=next(n for n in nodes.values() if n['type']=='KSamplerSelect')
+            self.assertEqual(sampler['widgets_values'],['euler'])
 
     def test_locked_no_cuda_reinstall(self):
         names=[]
