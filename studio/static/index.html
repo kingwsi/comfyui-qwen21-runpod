@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark"><title>映话 · 图片工作台</title>
+<link rel="stylesheet" href="style.css"><script src="app.js" defer></script>
+</head>
+<body>
+<div class="app">
+ <header><a class="brand" href="./"><span aria-hidden="true">◉</span> 映话 <span class="brand-sub">图片工作台</span></a><div class="header-right"><span id="model">连接中…</span><a href="../">打开 ComfyUI ↗</a></div></header>
+ <main>
+  <div class="intro"><h1>选一个模板，开始创作。</h1><p>上传图片，填写要求，然后生成。</p></div>
+  <nav id="templates" aria-label="生成模板"></nav>
+  <div class="workspace">
+   <section class="input-panel" aria-labelledby="input-title"><div class="panel-heading"><h2 id="input-title">输入</h2><span id="image-count"></span></div>
+    <form id="generate-form">
+     <div id="image-section"><div class="field-heading"><span id="images-label">上传图片</span><span>PNG、JPEG、WebP · 每张 ≤ 20 MB</span></div><div id="image-slots" class="image-slots"></div><p id="image-hint" class="hint"></p><input id="files" type="file" accept="image/png,image/jpeg,image/webp" hidden></div>
+     <label class="prompt-label" for="prompt">生成要求</label><textarea id="prompt" rows="6" maxlength="4000" required placeholder="描述你想要的画面…"></textarea>
+     <div class="prompt-footer"><button id="reset-prompt" type="button">恢复模板提示词</button><span id="prompt-count">0 / 4000</span></div>
+     <p id="error" role="alert" hidden></p><button id="generate" class="primary" type="submit" disabled>生成图片 ↗</button>
+     <p class="hint submit-hint">每次独立生成，只使用当前图片和要求。</p>
+    </form>
+   </section>
+   <section class="output-panel" aria-labelledby="output-title"><div class="panel-heading"><h2 id="output-title">生成结果</h2><span id="result-template"></span></div>
+    <div id="result"><div class="empty-result"><div class="empty-icon" aria-hidden="true">▧</div><p>你的下一张作品，从这里开始</p><span>生成后可预览和下载原图</span></div></div>
+    <div id="status" role="status" aria-live="polite"></div><div id="result-actions" hidden><button id="view-result">查看大图</button><a id="download" class="download" download="qwen-image.png">下载原图 ↓</a></div>
+   </section>
+  </div>
+  <footer>基于 Qwen Image 2.1 · 图片与结果保存在当前 Pod 的工作目录</footer>
+ </main>
+</div>
+<dialog id="preview"><button id="close-preview" aria-label="关闭图片预览">关闭 ×</button><img id="preview-image" alt="生成图片预览"></dialog>
+</body></html>

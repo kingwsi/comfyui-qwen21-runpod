@@ -8,7 +8,6 @@
 !sources.json
 !model-manifest.json
 !turbo-model-manifest.json
-!lora-manifest.json
 !scripts/
 !scripts/*.py
 !workflows/
@@ -21,3 +20,10 @@
 !.github/
 !.github/workflows/
 !.github/workflows/*.yml
+
+!studio/
+!studio/*.py
+!studio/static/
+!studio/static/*.html
+!studio/static/*.css
+!studio/static/*.js

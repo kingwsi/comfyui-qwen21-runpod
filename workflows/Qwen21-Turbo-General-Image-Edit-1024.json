@@ -569,7 +569,7 @@
       "outputs": [],
       "properties": {},
       "widgets_values": [
-        "Turbo：MODEL_VARIANT=turbo；需要新版镜像。8 步 / CFG 1 / Euler / 专用 ManualSigmas，不能改成 simple。保留单图编辑和多图参考，不使用 OutfitSwap LoRA。尚待 GPU 出图与编辑质量验证。"
+        "Turbo：MODEL_VARIANT=turbo；需要新版镜像。8 步 / CFG 1 / Euler / 专用 ManualSigmas，不能改成 simple。保留单图编辑和多图参考，不使用 LoRA。尚待 GPU 出图与编辑质量验证。"
       ]
     }
   ],

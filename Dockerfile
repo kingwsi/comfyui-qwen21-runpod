@@ -26,8 +26,9 @@ COPY scripts/ /opt/comfyui-reusable/scripts/
 RUN python /opt/comfyui-reusable/scripts/patch_proxy.py \
  && python -m jupyter server extension enable --py jupyter_server_proxy --sys-prefix \
  && python -c 'import torch,gguf,jupyter_server_proxy; assert torch.__version__ == "2.8.0+cu128"'
-COPY start.sh sources.json model-manifest.json turbo-model-manifest.json lora-manifest.json /opt/comfyui-reusable/
+COPY start.sh sources.json model-manifest.json turbo-model-manifest.json /opt/comfyui-reusable/
 COPY workflows/ /opt/comfyui-reusable/workflows/
+COPY studio/ /opt/ComfyUI/custom_nodes/qwen_studio/
 COPY tests/ /opt/comfyui-reusable/tests/
 COPY Dockerfile README.md pre_start.sh /opt/comfyui-reusable/
 COPY .github/ /opt/comfyui-reusable/.github/

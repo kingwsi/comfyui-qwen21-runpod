@@ -1,5 +1,5 @@
 """CPU-only container smoke: no weights/network/GPU inference required."""
-import json, os, secrets, subprocess, tempfile, time, urllib.request, urllib.error
+import json, os, secrets, subprocess, tempfile, time, urllib.request, urllib.error, http.cookiejar, sys
 from pathlib import Path
 
 def combo_options(spec):
@@ -28,6 +28,23 @@ def check_turbo_runtime(info):
     assert 'qwen_image' in combo_options(info['CLIPLoaderGGUF']['input']['required']['type'])
     assert 'euler' in combo_options(info['KSamplerSelect']['input']['required']['sampler_name'])
 
+def check_studio_runtime(info):
+    sys.path.insert(0, '/opt/comfyui-reusable/tests')
+    from test_studio import graph
+    for variant in ('base', 'turbo'):
+        for count, template in [(i, None) for i in range(4)] + ([(2, 'faceswap')] if variant == 'turbo' else []):
+            prompt = graph.build_graph('smoke test', [f'test-{i}.png' for i in range(count)], variant, seed=1, template=template)
+            for node in prompt.values():
+                schema = info[node['class_type']]
+                inputs = dict(schema['input'].get('required', {}), **schema['input'].get('optional', {}))
+                for name, value in node['inputs'].items():
+                    assert name in inputs or (name.startswith('images.image_') and 'images' in inputs), (node['class_type'], name)
+                    if isinstance(value, list):
+                        source = prompt[value[0]]
+                        assert value[1] < len(info[source['class_type']]['output'])
+    print('PASS: studio API graph runtime contracts, both profiles, text/single/2/3 images.')
+
+
 def get(url, token=None, data=None, method=None):
     headers = {'Authorization': 'token ' + token} if token else {}
     if data is not None: headers['Content-Type'] = 'application/json'
@@ -51,7 +68,7 @@ def main():
             ]
             for i,cmd in enumerate(cmds):
                 log=open(root/f'process-{i}.log','w+'); logs.append(log)
-                procs.append(subprocess.Popen(cmd,cwd='/opt/ComfyUI',stdout=log,stderr=subprocess.STDOUT))
+                procs.append(subprocess.Popen(cmd,cwd='/opt/ComfyUI',stdout=log,stderr=subprocess.STDOUT,env={**os.environ,'RUNTIME_DIR':str(root)}))
             base='http://127.0.0.1:8888/proxy/8188/'
             deadline=time.monotonic()+180
             while time.monotonic()<deadline:
@@ -67,6 +84,26 @@ def main():
                 except (OSError,ValueError,AssertionError): time.sleep(2)
             else: raise RuntimeError('CPU ComfyUI/proxy startup timed out')
             check_turbo_runtime(info)
+            check_studio_runtime(info)
+            # Exercise the shipped custom routes through the real authenticated
+            # proxy, including cookie-based asset isolation and relative paths.
+            opener=urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+            headers={'Authorization':'token '+token}
+            with opener.open(urllib.request.Request(base+'qwen-studio/',headers=headers),timeout=10) as response:
+                assert response.status==200 and '生成模板'.encode() in response.read()
+            with opener.open(urllib.request.Request(base+'qwen-studio/api/config',headers=headers),timeout=10) as response:
+                config=json.load(response)
+                expected_templates={'text','edit','reference'}
+                if config['model']=='turbo': expected_templates.add('faceswap')
+                assert set(config['templates'])==expected_templates
+            for name in ('app.js','style.css'):
+                assert get(base+'qwen-studio/'+name,token)[0]==200
+            try:
+                _,body=get(base+'qwen-studio/api/config')
+                assert b'"templates"' not in body, 'Anonymous access leaked studio config'
+            except urllib.error.HTTPError as e:
+                assert e.code in (401,403)
+            print('PASS: studio page/assets/config through authenticated Jupyter; anonymous access denied.')
             validate=fastjsonschema.compile(json.loads(Path('/opt/comfyui-reusable/tests/comfy-workflow-0.4.schema.json').read_text()))
             # Every shipped graph must be valid and its nodes registered.
             count=0
@@ -77,7 +114,7 @@ def main():
                 for node in workflow['nodes']:
                     if node['type'] != 'Note':
                         assert node['type'] in info, (path.name, node['type'])
-            assert count==7, ('Unexpected workflow count',count)
+            assert count==6, ('Unexpected workflow count',count)
             print(f'PASS: all {count} workflow schemas and node registrations; Turbo runtime input/output contracts.')
             # Anonymous request must not reach ComfyUI object_info JSON.
             try:

@@ -39,13 +39,19 @@ class Downloads(unittest.TestCase):
 
     def test_turbo_manifest_pins_all_components_and_sources(self):
         data=m.load_manifest(ROOT / 'turbo-model-manifest.json')
-        self.assertEqual(len(data['files']),4)
-        self.assertEqual(data['total_size_bytes'],18139153496)
+        self.assertEqual(len(data['files']),5)
+        self.assertEqual(data['total_size_bytes'],18399249640)
         for item in data['files']:
             url=m.public_url(data,item)
             self.assertIn('/'+item['repo_id']+'/resolve/'+item['revision']+'/',url)
         self.assertTrue(data['files'][2]['target_path'].startswith('text_encoders/mmproj-'))
         self.assertEqual(data['files'][3]['sha256'],m.load_manifest(ROOT/'model-manifest.json')['files'][2]['sha256'])
+        bfs=data['files'][4]
+        self.assertEqual(bfs['repo_id'],'Alissonerdx/BFS-Best-Face-Swap')
+        self.assertEqual(bfs['revision'],'0ca3913ade4b4ada458d60c232354e8586c4c181')
+        self.assertEqual(bfs['target_path'],'loras/bfs_head_v1.1_qwen_2.1.safetensors')
+        self.assertEqual(bfs['size_bytes'],260096144)
+        self.assertEqual(bfs['sha256'],'d1d748d5601077f3b6d05766f6823510e901970d916afa404a97e85dc92fa88e')
 
     def test_per_file_source_override_is_validated(self):
         for field,value in [('revision','main'),('repo_id','https://example.com/x')]:
