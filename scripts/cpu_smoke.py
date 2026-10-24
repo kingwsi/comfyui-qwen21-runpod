@@ -1,8 +1,16 @@
 """CPU-only container smoke: no weights/network/GPU inference required."""
 import json, os, secrets, subprocess, tempfile, time, urllib.request, urllib.error
 from pathlib import Path
-import websocket
-import fastjsonschema
+
+def combo_options(spec):
+    # Legacy nodes return [options, metadata]; V3 returns ["COMBO", metadata].
+    if isinstance(spec[0], (list, tuple)):
+        return spec[0]
+    if spec[0] == 'COMBO' and len(spec) > 1:
+        options=spec[1].get('options')
+        if isinstance(options, (list, tuple)):
+            return options
+    raise AssertionError('Unsupported runtime combo schema')
 
 def check_turbo_runtime(info):
     # Check real object_info, not only whether a node class was registered.
@@ -17,8 +25,8 @@ def check_turbo_runtime(info):
         actual=info[name]
         assert required.issubset(actual['input']['required']), ('Turbo input mismatch',name)
         assert list(actual['output'])==outputs, ('Turbo output mismatch',name)
-    assert 'qwen_image' in info['CLIPLoaderGGUF']['input']['required']['type'][0]
-    assert 'euler' in info['KSamplerSelect']['input']['required']['sampler_name'][0]
+    assert 'qwen_image' in combo_options(info['CLIPLoaderGGUF']['input']['required']['type'])
+    assert 'euler' in combo_options(info['KSamplerSelect']['input']['required']['sampler_name'])
 
 def get(url, token=None, data=None, method=None):
     headers = {'Authorization': 'token ' + token} if token else {}
@@ -27,6 +35,8 @@ def get(url, token=None, data=None, method=None):
         return r.status, r.read()
 
 def main():
+    import websocket
+    import fastjsonschema
     token = secrets.token_hex(24)
     procs=[]
     with tempfile.TemporaryDirectory() as root:
@@ -47,6 +57,9 @@ def main():
             while time.monotonic()<deadline:
                 if any(p.poll() is not None for p in procs): raise RuntimeError('Service exited during startup')
                 try:
+                    # Wait for ComfyUI itself before probing the proxy. Otherwise
+                    # normal startup delay produces misleading proxy 500 traces.
+                    get('http://127.0.0.1:8188/object_info')
                     status, body=get(base+'object_info',token)
                     info=json.loads(body)
                     assert 'UnetLoaderGGUF' in info
